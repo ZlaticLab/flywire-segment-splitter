@@ -14,11 +14,13 @@ A small web app that cuts large, fused CAVE segments into smaller pieces, to mak
 
 ## Setup
 
-Needs Python 3.9+.
+Needs Python 3.9+, on Mac, Linux, or Windows.
 
 ```
 pip install -r requirements.txt
 ```
+
+On Windows, run these with `python` from an ordinary Command Prompt or PowerShell (the [python.org](https://python.org) installer adds it to `PATH`) — no other setup is needed, and nothing here needs WSL or Git Bash.
 
 ### CAVE credentials
 
@@ -36,7 +38,7 @@ It reads the server from `config.json`, says whether a token is already saved an
 | `--no-browser` | Don't try to open the token page (headless servers). |
 | `--server URL` | Set a token up for another CAVE server than the config's. |
 
-Tokens go to `~/.cloudvolume/secrets/`, in both `cave-secret.json` and `<server>-cave-secret.json`, readable only by you. An old token being replaced is kept alongside as `.bak`. Making a new token invalidates the previous one, so anything else using the old one stops working.
+Tokens go to `~/.cloudvolume/secrets/` (on Windows, `C:\Users\<you>\.cloudvolume\secrets\`), in both `cave-secret.json` and `<server>-cave-secret.json`, restricted to your account — an NTFS permission on Windows, a Unix file mode elsewhere. An old token being replaced is kept alongside as `.bak`. Making a new token invalidates the previous one, so anything else using the old one stops working.
 
 To do it by hand instead: open `https://global.connectomics.braininbrain.org/auth/api/v1/create_token`, log in with Google, and save the token shown as `~/.cloudvolume/secrets/cave-secret.json`:
 
@@ -58,10 +60,10 @@ List the datasets to choose from, and the CAVE server they're on, in `config.jso
 
 ```json
 {
-  "server_address": "SERVER_ADDRESS",
+  "server_address": "https://global.connectomics.braininbrain.org",
   "samples": {
-    "SAMPLE_A": "datastack_A",
-    "SAMPLE_B": "datastack_B"
+    "Parker-Goog": "zlatic_parker_google_segmentation_datastack",
+    "Parker_LSD": "zlatic_parker_v1b_datastack"
   }
 }
 ```
@@ -81,7 +83,7 @@ Before it opens the port, `app.py`:
 
 Only then does it print the link. The chosen sample can't be changed from the page — it's shown in a badge next to the app's title, so you always know which one you're editing. To work on a different sample, stop the app and start it again (optionally with a different `--sample`).
 
-The app listens on `localhost:8765` (change with `--port`). To open it from your own machine, run `ssh -L 8765:localhost:8765 <host>`, then open the printed link. Start it in `screen` or `tmux` to keep it running; each start picks a sample afresh and prints a new link.
+The app listens on `localhost:8765` (change with `--port`). To open it from your own machine, run `ssh -L 8765:localhost:8765 <host>`, then open the printed link (Windows has `ssh` built in since Windows 10; PuTTY's `plink -L 8765:localhost:8765 <host>` also works). Start it in `screen` or `tmux` to keep it running after you disconnect. Windows has no equivalent, so either leave the console window open, or start it minimized so it stays out of the way without losing the printed link: `start /min python app.py` (Command Prompt) or `Start-Process python -ArgumentList "app.py" -WindowStyle Minimized` (PowerShell) — don't use `-WindowStyle Hidden` or `pythonw.exe` here, since both discard the console output, and the link is only ever printed, never saved anywhere. Each start picks a sample afresh and prints a new link.
 
 ## Use
 

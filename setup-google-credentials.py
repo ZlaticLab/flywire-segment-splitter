@@ -7,7 +7,7 @@
 
 See README.md, "Setting Google credentials".
 """
-import argparse, json, os, re, sys, urllib.error, urllib.parse, urllib.request, webbrowser
+import argparse, json, os, re, subprocess, sys, urllib.error, urllib.parse, urllib.request, webbrowser
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 CONFIG_PATH = os.path.join(HERE, "config.json")
@@ -102,11 +102,25 @@ def clean(pasted):
     return s.strip().strip('"').strip("'").strip()
 
 
+def lock_down(path, dir=False):
+    """Best-effort: restrict `path` to the current user. On Windows, chmod only toggles the read-only
+    attribute and doesn't stop other accounts on the machine reading it, so an ACL is set with icacls instead."""
+    try:
+        if os.name == "nt":
+            user = os.environ.get("USERNAME")
+            if user:
+                rights = f"{user}:(OI)(CI)F" if dir else f"{user}:F"
+                subprocess.run(["icacls", path, "/inheritance:r", "/grant:r", rights], capture_output=True, check=False)
+        else:
+            os.chmod(path, 0o700 if dir else 0o600)
+    except OSError:
+        pass
+
+
 def write_token(path, token):
     """Save the token, keeping any other keys already in the file, and keep it readable only by this user."""
     os.makedirs(SECRET_DIR, exist_ok=True)
-    try: os.chmod(SECRET_DIR, 0o700)
-    except OSError: pass
+    lock_down(SECRET_DIR, dir=True)
     data = {}
     if os.path.exists(path):
         try:
@@ -119,8 +133,7 @@ def write_token(path, token):
     data[TOKEN_KEY] = token
     tmp = path + ".tmp"
     with open(tmp, "w") as f: json.dump(data, f, indent=2)
-    try: os.chmod(tmp, 0o600)
-    except OSError: pass
+    lock_down(tmp)
     os.replace(tmp, path)
     say(f"    wrote   {path}")
 
