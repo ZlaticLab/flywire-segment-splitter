@@ -1,0 +1,6 @@
+# Python 3.9 or newer. app.py itself uses only the standard library; these are for splitter.py and the CAVE connection.
+# Install with: pip install -r requirements.txt
+caveclient          # CAVE / chunkedgraph access: preview_split, execute_split, level2_chunk_graph, segmentation_info
+numpy>=1.21
+scipy>=1.8          # sparse Laplacian and eigsh for the spectral bisection
+networkx>=2.8       # L2 graph; to_scipy_sparse_array needs 2.7+
